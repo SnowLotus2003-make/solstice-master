@@ -1,17 +1,10 @@
-name: Solstice Build
-
-##By SnowLotus
+name: Build Solstice Project
 
 on:
-  workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Build type (Debug or Release)'
-        required: true
-        default: 'Debug'
   push:
     branches:
-      - main
+      - main # 监听main分支的推送事件
+  pull_request: # 监听拉取请求事件
 
 jobs:
   build:
@@ -20,11 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up CMake
-        uses: cmake-actions/configure@v1
+      - name: Set up MSVC
+        uses: microsoft/setup-msvc@v1
         with:
-          cmake-version: '3.28'
-          build-type: ${{ github.event.inputs.build_type }}
+          vs-version: 2022
+          architecture: x64
+          include-preview: true
+
+      - name: Configure CMake
+        run: cmake -S. -B build -DCMAKE_BUILD_TYPE=Release
+        env:
+          
+          PATH: ${{ env.PATH }};C:/msys64/mingw64/bin
 
       - name: Build project
-        uses: cmake-actions/build@v1
+        run: cmake --build build --config Release
